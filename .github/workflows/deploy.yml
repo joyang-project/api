@@ -47,21 +47,17 @@ jobs:
           script: |
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/joyang-api:latest
             
-            if [ "$(docker ps -aq -f name=joyang-api)" ]; then
-              docker rm -f joyang-api
-            fi
+            docker stop joyang-api || true
+            docker rm joyang-api || true
             
             docker run -d \
               --name joyang-api \
               --platform linux/arm64 \
-              -p 4000:4000 \
               --restart always \
-              -v ~/joyang/uploads:/app/uploads \
-              -e NODE_ENV=production \
-              -e DATABASE_HOST=${{ secrets.DB_HOST }} \
-              -e DATABASE_USER=${{ secrets.DB_USER }} \
-              -e DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e DATABASE_NAME=${{ secrets.DB_NAME }} \
+              -p 4000:4000 \
+              -v ~/joyang/api/uploads:/app/uploads \
+              --env-file ~/joyang/api/.env \
+              --network joyang-network \
               ${{ secrets.DOCKERHUB_USERNAME }}/joyang-api:latest
 
             docker image prune -f

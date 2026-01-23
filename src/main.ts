@@ -7,7 +7,7 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  const allowedDomainRegex = /(^|.*\.)jo-yang\.com$/;
+  const allowedDomainRegex = /^https?:\/\/(.*\.?jo-yang\.com)$/;
 
   const corsOptions: CorsOptions = {
     origin: (origin, callback) => {
@@ -22,7 +22,6 @@ async function bootstrap() {
         callback(new Error('CORS 정책에 의해 차단된 도메인입니다.'));
       }
     },
-
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     optionsSuccessStatus: 204,
     credentials: true,
@@ -33,13 +32,12 @@ async function bootstrap() {
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
     setHeaders: (res) => {
-      res.set('Access-Control-Allow-Origin', '*'); 
+      res.set('Access-Control-Allow-Origin', '*');
       res.set('Access-Control-Allow-Methods', 'GET,OPTIONS');
       res.set('Cache-Control', 'public, max-age=31536000, immutable');
     },
   });
 
   await app.listen(4000);
-  console.log(`Application is running on: http://localhost:4000`);
 }
 bootstrap();

@@ -1,15 +1,15 @@
 FROM node:20-slim AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 FROM node:20-slim
 WORKDIR /app
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /root/.pnpm-store /root/.pnpm-store
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
 
 RUN mkdir -p uploads
 

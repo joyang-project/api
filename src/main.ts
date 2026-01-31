@@ -3,31 +3,27 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  const allowedDomainRegex = /^https?:\/\/(.*\.?jo-yang\.com)$/;
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Origin', req.headers.origin);
+      res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, X-Refresh-Token');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      return res.sendStatus(204);
+    }
+    next();
+  });
 
-  const corsOptions: CorsOptions = {
-    origin: (origin, callback) => {
-      if (
-        !origin ||
-        origin.includes('localhost') ||
-        origin.includes('127.0.0.1') ||
-        allowedDomainRegex.test(origin)
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error('CORS 정책에 의해 차단된 도메인입니다.'));
-      }
-    },
+  app.enableCors({
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    optionsSuccessStatus: 204,
     credentials: true,
-  };
-
-  app.enableCors(corsOptions);
+  });
 
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
